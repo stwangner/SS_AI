@@ -507,26 +507,156 @@
 						showall();
 					}
 				}
+				
+				breakout(myinplay, mydiscard, myhand, oppinplay) {
+					var x;
+					var z = myinplay.getLength();
+					for (x=0; x<z; x++) {
+						if (myinplay.getSpecificCard(x) == 29) {
+							myhand.addnewcard(myinplay.getSpecificCard(x));
+							this.checkfordiscard(myhand, mydiscard);
+						} else {
+							mydiscard.addcard(myinplay.getSpecificCard(x));
+						}
+					}
+					myinplay.clearall();
+					oppinplay.clearall();
+				}
+				
+				playacard(myhand, myinplay, mydiscard, mydeck) {
+					var myqueue = [];
+					var x;
+					var currentvalue = 0;
+					var thiscard = [];
+					var ruleattributes = [];
+					var topcardvalue;
+					var topcardposition;
+
+					for (x=0; x<myhand.getLength(); x++) {
+						currentvalue = 1.0;
+						thiscard = carddatabase[myhand.getSpecificCard(x)];
+
+						if (thiscard[5].substr(0,4) == "STOP") {					//Is card a stop?
+							if (thiscard[5].substr(0, 8) == "STOP ANY") {
+								currentvalue *= 0.5;
+							} else {
+								currentvalue *= 0.75;
+							}
+						}
+
+						if (thiscard[3] == "FINISH") {								//Is card a finish?
+							if (this.ihaveafollowupinplay(myinplay)) {
+								currentvalue *= 2;
+							} else {
+								currentvalue *= 0;
+							}
+						}
+
+						if (thiscard[3] == "FOLLOWUP") {							//Is card a followup?
+							if (this.ihavealeadinplay(myinplay)) {
+								currentvalue *= 1.5;
+							} else {
+								currentvalue *= 0;
+							}
+						}
+
+						ruleattributes = thiscard[6].split(" ");
+
+						if (ruleattributes.length > 1) {
+							switch(ruleattributes[0]) {
+								case "SELF":
+									switch(ruleattributes[1]) {
+										case "DRAW":
+											currentvalue *= 1.3;										//self draw
+											break;
+										case "TAKE":
+											currentvalue *= 1.2;										//self take
+											break;
+										case "BURY":
+											currentvalue *= 1.03;										//self bury
+											break;
+										default:
+											break;
+									} 
+									break;
+								case "OPP":
+									switch(ruleattributes[1]) {
+										case "DISCARD":
+											currentvalue *= 1.1;										//opponent discard
+											break;
+										case "BURY":
+											currentvalue *= 1.05;										//opponent bury
+											break;
+										default:
+											break;
+									}
+									break;
+								default:
+									break;
+							}
+						}
+						myqueue[x] = currentvalue;
+					}
+
+					topcardposition = -999;
+					topcardvalue = -999;
+
+					for (x=0; x<myqueue.length; x++) {									//find position of best card to play
+						if (myqueue[x] > topcardvalue) {								//as aistrength gets lower, there is less chance that 
+							if (getRndInteger(1, 100) < this.AIstrength) {					//		it will detect that a given card is the "best" card to play
+								topcardposition = x;
+								topcardvalue = myqueue[x];	
+							}
+						}
+					}
+
+					if (topcardvalue > 0) {
+						myinplay.addcard(myhand.getSpecificCard(topcardposition));						//play the card found
+						myhand.rebuildwithout(topcardposition);																
+						setopponentplayedcardbuttons(false);											//enable the buttons to indicate what the opponent stopped your card with
+					} else {
+						getDOM("dialog-confirm").innerHTML = "No legal card to play.";
+						var returnvalue = $( function() {
+							$( "#dialog-confirm" ).dialog({
+							  position: { my: "left center", at: "right center", of: getDOM("controltable") },
+							  resizable: false,
+							  height: "auto",
+							  width: 400,
+							  modal: true,
+							  buttons: {
+								"OK": function() {
+								  $( this ).dialog( "close" );           //close dialog
+								}
+							  }
+							});
+						} );		
+						this.buryonecard(mydiscard, mydeck, false, "HIGHTOLOW");
+					}
+				}
+				
+				opponent_played(myhand, myinplay, mydiscard, oppinplay, cardsequence, cardtype) {
+					var usethiscard = -999;
+					var x;
+
+					if (this.whoseturn == "OPPONENT") {
+						this.trytoplaystop(myhand, myinplay, oppinplay, cardsequence, cardtype)
+					}
+					if (this.whoseturn == "MINE") {
+						for (x=0; x<30; x++) {
+							if ((carddatabase[x][3] == cardsequence) && (carddatabase[x][4] == cardtype)) {
+								usethiscard = x;
+							}
+						}
+						oppinplay.addcard(usethiscard);
+						mydiscard.addcard(myinplay.getSpecificCard(0));		//put card on top of discard pile
+						myinplay.popTopCard();			 						//remove card from in play list
+					}
+					setopponentplayedcardbuttons(true);					
+				}
 			}
 		</script>
 
 		<script language = "javascript">
-			//set up global variables
-			var carddatabase = [];
-			var myfulldeck = [];
-			var debugout = "";
-			
-			let my_hand = new CardsInHand();
-			let my_deck = new CardsInDeck();
-			let my_inplay = new CardsOnTable();
-			let my_discard = new CardsInDiscard();
-			
-			let opp_inplay = new CardsOnTable();
-			
-			let the_ai = new AI();
-			the_ai.whoseturn = "";
-			the_ai.AIstrength = 100;
-
 			//generic function to make "document.getElementById()" shorter
 			//without: document.getElementById("elementid")
 			//with   : getDOM("elementid")
@@ -536,8 +666,10 @@
 
 			function getRndInteger(min, max) {
 				return Math.floor(Math.random() * (max - min + 1) ) + min;
-			}
-
+			}			
+			
+			var carddatabase = [];
+			
 			function loadcarddatabase() {
 				//GENERAL FORMAT = ["CARDIDENTIFIER", "GRAPHICSFILE", "NAME", "SEQUENCE", "TYPE", "STOPATTRIBUTES", "OTHERATTRIBUTES"]
 
@@ -573,14 +705,42 @@
 				carddatabase[27] = ["28-01", "28-01.JPG", "THE DUB STEP", "FINISH", "STRIKE", "", "OPP BURY 1"];
 				carddatabase[28] = ["29-01", "29-01.JPG", "THE BEAT DROP", "FINISH", "GRAPPLE", "", ""];
 				carddatabase[29] = ["30-01", "30-01.JPG", "TEARIN' UP THE 1'S & 2'S", "FINISH", "SUBMISSION", "", "SELF TAKE 1"];
-			}
-
+			}			
+			
+			//set up full AI deck with the proper cards in it
+			var myfulldeck = [];
 			function loadinitialdeck() { 									//load the proper cards from the card library into the deck
 				var x;
 				for (x=0; x<30; x++) {
 					myfulldeck[x] = x;
 				}
 			}
+			
+			//stuff for debug output column
+			var debugout = "";
+			function addtodebug(thetext) {
+				getDOM("debugoutput").innerHTML += thetext + "<br>";
+			}
+			function cleardebug() {
+				getDOM("debugoutput").innerHTML = "";
+			}
+			
+			//set up objects for AI player
+			let my_hand = new CardsInHand();
+			let my_deck = new CardsInDeck();
+			let my_inplay = new CardsOnTable();
+			let my_discard = new CardsInDiscard();
+			
+			//set up objects for non-AI player
+			let opp_hand = new CardsInHand();
+			let opp_deck = new CardsInDeck();
+			let opp_inplay = new CardsOnTable();
+			let opp_discard = new CardsInDiscard();
+			
+			//set up AI objects
+			let the_ai = new AI();
+			the_ai.whoseturn = "";
+			the_ai.AIstrength = 100;
 
 			function initializedeck() {
 				loadinitialdeck();
@@ -636,6 +796,11 @@
 				the_ai.drawcard(my_hand, my_deck, my_discard);
 				showall();
 			}	
+			
+			function playcardbuttonclicked() {
+				the_ai.playacard(my_hand, my_inplay, my_discard, my_deck);
+				showall();									
+			}
 
 			function checkfordiscard() {
 				the_ai.checkfordiscard(my_hand, my_discard);
@@ -655,167 +820,16 @@
 				showall();
 				startgameenablebuttons();
 			}
-		</script>
-			
-		<script language = "javascript">							//code directly for AI starts here		
-			function playcardbuttonclicked() {
-				var myqueue = [];
-				var x;
-				var currentvalue = 0;
-				var thiscard = [];
-				var ruleattributes = [];
-				var topcardvalue;
-				var topcardposition;
-
-				for (x=0; x<my_hand.getLength(); x++) {
-					currentvalue = 1.0;
-					thiscard = carddatabase[my_hand.getSpecificCard(x)];
-
-					if (thiscard[5].substr(0,4) == "STOP") {					//Is card a stop?
-						if (thiscard[5].substr(0, 8) == "STOP ANY") {
-							currentvalue *= 0.5;
-						} else {
-							currentvalue *= 0.75;
-						}
-					}
-
-					if (thiscard[3] == "FINISH") {								//Is card a finish?
-						if (the_ai.ihaveafollowupinplay(my_inplay)) {
-							currentvalue *= 2;
-						} else {
-							currentvalue *= 0;
-						}
-					}
-
-					if (thiscard[3] == "FOLLOWUP") {							//Is card a followup?
-						if (the_ai.ihavealeadinplay(my_inplay)) {
-							currentvalue *= 1.5;
-						} else {
-							currentvalue *= 0;
-						}
-					}
-
-					ruleattributes = thiscard[6].split(" ");
-
-					if (ruleattributes.length > 1) {
-						switch(ruleattributes[0]) {
-							case "SELF":
-								switch(ruleattributes[1]) {
-									case "DRAW":
-										currentvalue *= 1.3;										//self draw
-										break;
-									case "TAKE":
-										currentvalue *= 1.2;										//self take
-										break;
-									case "BURY":
-										currentvalue *= 1.03;										//self bury
-										break;
-									default:
-										break;
-								} 
-								break;
-							case "OPP":
-								switch(ruleattributes[1]) {
-									case "DISCARD":
-										currentvalue *= 1.1;										//opponent discard
-										break;
-									case "BURY":
-										currentvalue *= 1.05;										//opponent bury
-										break;
-									default:
-										break;
-								}
-								break;
-							default:
-								break;
-						}
-					}
-					myqueue[x] = currentvalue;
-				}
-
-				topcardposition = -999;
-				topcardvalue = -999;
-
-				for (x=0; x<myqueue.length; x++) {									//find position of best card to play
-					if (myqueue[x] > topcardvalue) {								//as aistrength gets lower, there is less chance that 
-						if (getRndInteger(1, 100) < the_ai.AIstrength) {					//		it will detect that a given card is the "best" card to play
-							topcardposition = x;
-							topcardvalue = myqueue[x];	
-						}
-					}
-				}
-
-				if (topcardvalue > 0) {
-					my_inplay.addcard(my_hand.getSpecificCard(topcardposition));							//play the card found
-					my_hand.rebuildwithout(topcardposition);
-					showall();																				//refresh the display
-					setopponentplayedcardbuttons(false);													//enable the buttons to indicate what the opponent stopped your card with
-				} else {
-					getDOM("dialog-confirm").innerHTML = "No legal card to play.";
-					var returnvalue = $( function() {
-						$( "#dialog-confirm" ).dialog({
-						  position: { my: "left center", at: "right center", of: getDOM("controltable") },
-						  resizable: false,
-						  height: "auto",
-						  width: 400,
-						  modal: true,
-						  buttons: {
-							"OK": function() {
-							  $( this ).dialog( "close" );           //close dialog
-							}
-						  }
-						});
-					} );		
-					buryfromdiscardclicked();
-				}
-				showall();											//refresh the display
-			}
-
+						
 			function clearinplaybuttonclicked() {
-				var x;
-				var z = my_inplay.getLength();
-				for (x=0; x<z; x++) {
-					if (my_inplay.getSpecificCard(x) == 29) {
-						my_hand.addnewcard(my_inplay.getSpecificCard(x));
-						checkfordiscard();
-					} else {
-						my_discard.addcard(my_inplay.getSpecificCard(x));
-					}
-				}
-				my_inplay.clearall();
-				opp_inplay.clearall();
+				the_ai.breakout(my_inplay, my_discard, my_hand, opp_inplay);
 				showall();
 			}
 			
 			function oppplayed(cardsequence, cardtype) {
-				var usethiscard = -999;
-				
-				if (the_ai.whoseturn == "OPPONENT") {
-					the_ai.trytoplaystop(my_hand, my_inplay, opp_inplay, cardsequence, cardtype)
-				}
-				if (the_ai.whoseturn == "MINE") {
-					for (x=0; x<30; x++) {
-						if ((carddatabase[x][3] == cardsequence) && (carddatabase[x][4] == cardtype)) {
-							usethiscard = x;
-						}
-					}
-					opp_inplay.addcard(usethiscard);
-					my_discard.addcard(my_inplay.getSpecificCard(0));		//put card on top of discard pile
-					my_inplay.popTopCard();			 						//remove card from in play list
-					showall(); 
-				}
-				setopponentplayedcardbuttons(true);
-			}																//code directly for AI ends here (~350 to ~765 so about 415 lines of code)
-		</script>															
-		
-		<script language = "javascript">  										
-			function addtodebug(thetext) {
-				getDOM("debugoutput").innerHTML += thetext + "<br>";
-			}
-
-			function cleardebug() {
-				getDOM("debugoutput").innerHTML = "";
-			}
+				the_ai.opponent_played(my_hand, my_inplay, my_discard, opp_inplay, cardsequence, cardtype);
+				showall();
+			}															
 
 			function startgameenablebuttons() {
 				getDOM("buton98").disabled = false;
