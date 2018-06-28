@@ -1,0 +1,1027 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>SuperShow AI</title>
+
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+		
+		<script language="javascript">
+			class CardsOnTable {
+				constructor() {
+					this._mainarray = [];
+				}
+				
+				get mainarray() {
+					return this._mainarray;
+				}
+				
+				set mainarray(newarray) {
+					this._mainarray = newarray;
+				}
+				
+				addcard(newcard) {
+					this._mainarray.unshift(newcard);
+				}
+				
+				rebuildwithout(cardtoleaveout) {
+					var xx;
+					var newtable = [];
+					for (xx=0; xx<this._mainarray.length; xx++) {
+						if (xx != cardtoleaveout) {
+							newtable.push(this._mainarray[xx]);
+						}
+					}
+					this._mainarray = newtable;
+				}				
+				
+				getLength() {
+					return this._mainarray.length;
+				}
+				
+				clearall() {
+					this._mainarray = [];
+				}
+				
+				popTopCard() {
+					this._mainarray.shift();
+				}
+				
+				getSpecificCard(x) {
+					return this._mainarray[x];
+				}
+				
+				getNumberInPlay(thingtomatch) {
+					var x;
+					var tempstring = '';
+					var mycount = 0;
+					
+					for (x=0; x<this._mainarray.length; x++) {
+						tempstring = carddatabase[this._mainarray[x]][3];
+						if (carddatabase[this._mainarray[x]][3] == thingtomatch) {
+							mycount++;
+						} else if (carddatabase[this._mainarray[x]][4] == thingtomatch) {
+							mycount++;
+						}
+					}
+					
+					return mycount;
+				}
+				
+				getHTML() {
+					var output_html = this._mainarray.length + " cards<hr>";
+					var x;
+					for (x=0; x<this._mainarray.length; x++) {
+						output_html += "<img src = '" + carddatabase[this._mainarray[x]][1] + "' width = 350><br clear = all>";
+					}
+					
+					return output_html;
+				}
+			}
+
+			class CardsInHand {
+				constructor() {
+					this._mainarray = [];
+				}
+				
+				get mainarray() {
+					return this._mainarray;
+				}
+				
+				set mainarray(newarray) {
+					this._mainarray = newarray;
+				}
+				
+				addnewcard(newcardtoadd) {
+					this._mainarray.unshift(newcardtoadd);
+				}
+				
+				clearall() {
+					this._mainarray = [];
+				}
+				
+				rebuildwithout(cardtoleaveout) {
+					var xx;
+					var newhand = [];
+					for (xx=0; xx<this._mainarray.length; xx++) {
+						if (xx != cardtoleaveout) {
+							newhand.push(this._mainarray[xx]);
+						}
+					}
+					this._mainarray = newhand;
+				}
+				
+				getLength() {
+					return this._mainarray.length;
+				}
+				
+				getSpecificCard(x) {
+					return this._mainarray[x];
+				}
+				
+				getHTML() {
+					var output_html = this._mainarray.length + " cards<hr>";
+					var x;
+					for (x=0; x<this._mainarray.length; x++) {
+						output_html += "<img src = '" + carddatabase[this._mainarray[x]][1] + "' width = 350><br clear = all>";
+					}
+					
+					return output_html;
+				}
+			}
+			
+			class CardsInDeck {
+				constructor() {
+					this._mainarray = [];
+				}
+				
+				get mainarray() {
+					return this._mainarray;
+				}
+				
+				set mainarray(newarray) {
+					this._mainarray = newarray;
+				}
+				
+				burycard(cardnumber) {
+					this._mainarray.push(cardnumber);
+				}
+				
+				clearall() {
+					this._mainarray = [];
+				}
+				
+				getLength() {
+					return this._mainarray.length;
+				}
+				
+				shuffle() {
+					var swapnumber;
+					var deckdepth = this._mainarray.length;
+					for (swapnumber=0; swapnumber<100; swapnumber++) {			//do this 100 times: pick 2 random cards and swap them
+						var card1 = getRndInteger(0, deckdepth-1);
+						var card2 = getRndInteger(0, deckdepth-1);
+						var holdcard = this._mainarray[card1];
+						this._mainarray[card1] = this._mainarray[card2];
+						this._mainarray[card2] = holdcard;
+					}
+				}
+				
+				getTopCard() {
+					return this._mainarray[0];
+				}
+				
+				popTopCard() {
+					this._mainarray.shift();
+				}
+				
+				getHTML() {
+					var output_html = this._mainarray.length + " cards<hr>";
+					var x;
+					for (x=0; x<this._mainarray.length; x++) {
+						output_html += "<img src = '" + carddatabase[this._mainarray[x]][1] + "' width = 350><br clear = all>";
+					}
+					
+					return output_html;					
+				}
+			}
+			
+			class CardsInDiscard {
+				constructor() {
+					this._mainarray = [];
+				}
+				
+				get mainarray() {
+					return this._mainarray;
+				}
+				
+				set mainarray(newarray) {
+					this._mainarray = newarray;
+				}
+				
+				addcard(newcard) {
+					this._mainarray.unshift(newcard);
+				}
+				
+				clearall() {
+					this._mainarray = [];
+				}
+				
+				getSpecificCard(x) {
+					return this._mainarray[x];
+				}
+				
+				rebuildwithout(cardtoleaveout) {
+					var xx;
+					var newdiscard = [];
+					for (xx=0; xx<this._mainarray.length; xx++) {
+						if (xx != cardtoleaveout) {
+							newdiscard.push(this._mainarray[xx]);
+						}
+					}
+					this._mainarray = newdiscard;
+				}
+				
+				getHTML() {
+					var output_html = this._mainarray.length + " cards<hr>";
+					var x;
+					for (x=0; x<this._mainarray.length; x++) {
+						output_html += "<img src = '" + carddatabase[this._mainarray[x]][1] + "' width = 350><br clear = all>";
+					}
+					
+					return output_html;					
+				}
+			}
+			
+			class AI {
+				constructor () {
+					this._whoseturn = "";
+					this._AIstrength = 100;
+				}
+				
+				get AIstrength() {
+					return this._AIstrength;
+				}
+				
+				set AIstrength(newvalue) {
+					this._AIstrength = newvalue;
+				}
+				
+				get whoseturn() {
+					return this._whoseturn;
+				}
+				
+				set whoseturn(newvalue) {
+					this._whoseturn = newvalue;
+				}
+				
+				checkfordiscard(myhand, mydiscard) {
+					if (myhand.getLength() > 10) {
+						var card1 = this.sortarray(myhand.mainarray, "LOWTOHIGH")[0][1];	
+						mydiscard.addcard(myhand.getSpecificCard(card1));		
+						myhand.rebuildwithout(card1);								
+					}
+				}
+				
+				drawcard(myhand, mydeck, mydiscard) {
+					myhand.addnewcard(mydeck.getTopCard());			//add top card of deck to hand
+					mydeck.popTopCard();							//remove top card from deck
+					this.checkfordiscard(myhand, mydiscard);		//check to see if we need to discard for being over the hand size limit and do so if necessary
+				}
+				
+				ihavealeadinplay(myinplay) {
+					var returnvalue = false;
+					if (myinplay.getNumberInPlay("LEAD") > 0) {
+						returnvalue = true;
+					}
+					return returnvalue;
+				}
+
+				ihaveafollowupinplay(myinplay) {
+					var returnvalue = false;
+					if (myinplay.getNumberInPlay("FOLLOWUP") > 0) {
+						returnvalue = true;
+					}
+					return returnvalue;
+				}
+				
+				sortarray(arrayin, theorder) {
+					var temparray = [];
+					var x;
+					var thissequence;
+					var stopattributes = [];
+					var ruleattributes = [];
+					var tempvaluation;
+
+					for (x=0; x<arrayin.length; x++) {		//build temporary array from original array, adding additional fields ordinalpositioninoriginalarray and cardvaluation
+						temparray.push([arrayin[x], x, 0]);	//format is [cardnumberinDB, ordinalpositioninoriginalarray, cardvaluation]
+					}
+
+					for (x=0; x<temparray.length; x++) {					//assign card valuations to the cards in the temporary array
+						thissequence = carddatabase[temparray[x][0]][3];	//get attributes of the card
+						stopattributes = carddatabase[temparray[x][0]][5].split(" ");
+						ruleattributes = carddatabase[temparray[x][0]][6].split(" ");
+
+						tempvaluation = 1.0;								//assign value to each card
+						if (thissequence == "FINISH") {
+							tempvaluation *= 2.0;
+						}
+						if (stopattributes.length > 1) {
+							if (stopattributes.length == 3) {
+								if (stopattributes[1] == "ANY") {
+									tempvaluation *= 1.8;
+								} else {
+									tempvaluation *= 1.5;
+								}
+							} else {
+								tempvaluation *= 1.4;
+							}
+						}
+						if (ruleattributes.length > 1) {
+							switch (ruleattributes[0]) {
+								case "SELF":
+									switch (ruleattributes[1]) {
+										case "DRAW":
+											tempvaluation *= 1.3;
+											break;
+										case "TAKE":
+											tempvaluation *= 1.2;
+											break;
+										case "BURY":
+											tempvaluation *= 1.03;
+											break;
+										default:
+											break;	
+									}
+									break;
+								case "OPP":
+									switch (ruleattributes[1]) {
+										case "DISCARD":
+											tempvaluation *= 1.1;
+											break;
+										case "BURY":
+											tempvaluation *= 1.05;
+											break;
+										default:
+											break;	
+									}
+									break;
+								default:
+									break;
+							}
+						}
+						temparray[x][2] = tempvaluation;
+					}
+
+					var x1;
+					var x2; 
+					var tempnumber;
+					var templocation;
+					var z1;
+					var tempobject;
+
+					if (theorder == "HIGHTOLOW") {								//sort temparray with highest values on top
+						for (x1=0; x1<(temparray.length - 1); x1++) {
+							templocation = x1;
+							tempnumber = temparray[x1][2];
+							for (x2=(x1+1); x2<temparray.length; x2++) {
+								z1 = temparray[x2][2];
+								if (z1 > tempnumber) {
+									templocation = x2;
+									tempnumber = z1;
+								}
+							}
+							tempobject = temparray[x1];
+							temparray[x1] = temparray[templocation];
+							temparray[templocation] = tempobject;
+						}
+					} else {
+						for (x1=0; x1<(temparray.length - 1); x1++) {			//sort temparray with lowest values on top
+							templocation = x1;
+							tempnumber = temparray[x1][2];
+							for (x2=(x1+1); x2<temparray.length; x2++) {
+								z1 = temparray[x2][2];
+								if (z1 < tempnumber) {
+									templocation = x2;
+									tempnumber = z1;
+								}
+							}
+							tempobject = temparray[x1];
+							temparray[x1] = temparray[templocation];
+							temparray[templocation] = tempobject;
+						}
+					}
+
+					return temparray;
+				}
+				
+				fliponecard(mydeck, mydiscard) {
+					mydiscard.addcard(mydeck.getTopCard());
+					mydeck.popTopCard();
+				}
+				
+				buryonecard(buryfromarray, mydeck, atrandom, sortorder) {
+					if (atrandom) {
+						var card1 = getRndInteger(0, buryfromarray.getLength() - 1);
+					} else {
+						var card1 = this.sortarray(buryfromarray.mainarray, sortorder)[0][1];
+					}
+					mydeck.burycard(buryfromarray.getSpecificCard(card1));
+					buryfromarray.rebuildwithout(card1);
+				}
+				
+				takeonecardfromdiscard(myhand, mydiscard) {
+					var card1 = this.sortarray(mydiscard.mainarray, "HIGHTOLOW")[0][1];
+					myhand.addnewcard(mydiscard.getSpecificCard(card1));
+					mydiscard.rebuildwithout(card1);
+					this.checkfordiscard(myhand, mydiscard);
+				}
+				
+				shuffleonecardfromdiscard(mydeck, mydiscard) {
+					var card1 = this.sortarray(mydiscard.mainarray, "HIGHTOLOW")[0][1];
+					mydeck.burycard(mydiscard.getSpecificCard(card1));
+					mydiscard.rebuildwithout(card1);
+					mydeck.shuffle();
+				}
+				
+				trytoplaystop(myhand, myinplay, oppinplay, sequencetomatch, typetomatch) {
+					var stopattributes = [];
+					var x;
+					var temphand = [];
+					var topvalue = 0;
+					var cardfound = -999;
+					var usethiscard = -999;
+
+					for (x=0; x<myhand.getLength(); x++) {
+						temphand.push([myhand.getSpecificCard(x), 0]);
+
+						stopattributes = carddatabase[temphand[x][0]][5].split(" ");
+
+						if (stopattributes.length > 0) {
+							if (stopattributes[2] == typetomatch) {
+								if (stopattributes[1] == sequencetomatch) {
+									temphand[x][1] = 3;
+								}
+								if (stopattributes[1] == "ANY") {
+									if (stopattributes.length > 3) {
+										if (stopattributes[3] == "HAVEONESTOPONE") {
+											var response = false;
+
+											switch(typetomatch) {
+												case "STRIKE":
+													if (oppinplay.getNumberInPlay("STRIKE") > 0) {
+														response = true;
+													}
+													break;
+												case "GRAPPLE":
+													if (oppinplay.getNumberInPlay("GRAPPLE") > 0) {
+														response = true;
+													}										
+													break;
+												case "SUBMISSION":
+													if (oppinplay.getNumberInPlay("SUBMISSION") > 0) {
+														response = true;
+													}
+													break;
+												default:
+													break;
+											}
+
+											if (response) {
+												temphand[x][1] = 2;
+											} else {
+												temphand[x][1] = 0;
+											}
+										} else {
+											temphand[x][1] = 0;
+										}
+									} else {
+										temphand[x][1] = 1;
+									}
+								}
+							}
+						}
+					}
+
+					for (x=0; x<temphand.length; x++) {
+						if (temphand[x][1] > topvalue) {
+							topvalue = temphand[x][1];
+							cardfound = x;
+						}
+					}
+
+					if (cardfound >= 0) {														//STOPPED
+						myinplay.addcard(myhand.getSpecificCard(cardfound));						//play the card found
+						myhand.rebuildwithout(cardfound);
+						showall();																	//refresh display
+					} else {																	//NOT STOPPED
+						for (x=0; x<30; x++) {
+							if ((carddatabase[x][3] == sequencetomatch) && (carddatabase[x][4] == typetomatch)) {
+								usethiscard = x;
+							}
+						}
+						oppinplay.addcard(usethiscard);
+						setmyactionbuttons(false);
+						showall();
+					}
+				}
+			}
+		</script>
+
+		<script language = "javascript">
+			//set up global variables
+			var carddatabase = [];
+			var myfulldeck = [];
+			var debugout = "";
+			
+			let my_hand = new CardsInHand();
+			let my_deck = new CardsInDeck();
+			let my_inplay = new CardsOnTable();
+			let my_discard = new CardsInDiscard();
+			
+			let opp_inplay = new CardsOnTable();
+			
+			let the_ai = new AI();
+			the_ai.whoseturn = "";
+			the_ai.AIstrength = 100;
+
+			//generic function to make "document.getElementById()" shorter
+			//without: document.getElementById("elementid")
+			//with   : getDOM("elementid")
+			function getDOM(elementid) {
+				return document.getElementById(elementid);
+			}
+
+			function getRndInteger(min, max) {
+				return Math.floor(Math.random() * (max - min + 1) ) + min;
+			}
+
+			function loadcarddatabase() {
+				//GENERAL FORMAT = ["CARDIDENTIFIER", "GRAPHICSFILE", "NAME", "SEQUENCE", "TYPE", "STOPATTRIBUTES", "OTHERATTRIBUTES"]
+
+				carddatabase[0] = ["01-01", "01-01.JPG", "PUNCH", "LEAD", "STRIKE", "STOP LEAD GRAPPLE", ""];
+				carddatabase[1] = ["02-01", "02-01.JPG", "LOCK UP", "LEAD", "GRAPPLE", "STOP LEAD SUBMISSION", ""];
+				carddatabase[2] = ["03-01", "03-01.JPG", "HEADLOCK", "LEAD", "SUBMISSION", "STOP LEAD STRIKE", ""];
+				carddatabase[3] = ["04-01", "04-01.JPG", "KICK", "LEAD", "STRIKE", "STOP FOLLOWUP GRAPPLE", ""];
+				carddatabase[4] = ["05-01", "05-01.JPG", "HIP TOSS", "LEAD", "GRAPPLE", "STOP FOLLOWUP SUBMISSION", ""];
+				carddatabase[5] = ["06-01", "06-01.JPG", "ARMBAR", "LEAD", "SUBMISSION", "STOP FOLLOWUP STRIKE", ""];
+				carddatabase[6] = ["07-01", "07-01.JPG", "FOREARM SHOT", "LEAD", "STRIKE", "", "SELF DRAW 1"];
+				carddatabase[7] = ["08-01", "08-01.JPG", "SCOOP SLAM", "LEAD", "GRAPPLE", "", "SELF DRAW 1"];
+				carddatabase[8] = ["09-01", "09-01.JPG", "FACE STRETCH", "LEAD", "SUBMISSION", "", "SELF DRAW 1"];
+				carddatabase[9] = ["10-01", "10-01.JPG", "BACK KICK", "LEAD", "STRIKE", "", "SELF TURN 1"];
+
+				carddatabase[10] = ["11-01", "11-01.JPG", "SAMOAN DROP", "LEAD", "GRAPPLE", "", "SELF TURN 1"];
+				carddatabase[11] = ["12-01", "12-01.JPG", "HAMMER LOCK", "LEAD", "SUBMISSION", "", "SELF TURN 1"];
+				carddatabase[12] = ["13-01", "13-01.JPG", "SPLASH", "FOLLOWUP", "STRIKE", "", "OPP BURY 1"];
+				carddatabase[13] = ["14-01", "14-01.JPG", "ATOMIC DROP", "FOLLOWUP", "GRAPPLE", "", "OPP BURY 1"];
+				carddatabase[14] = ["15-01", "15-01.JPG", "KNEE BREAKER", "FOLLOWUP", "SUBMISSION", "", "OPP BURY 1"];
+				carddatabase[15] = ["16-01", "16-01.JPG", "SHOULDER BLOCK", "FOLLOWUP", "STRIKE", "", "SELF DRAW 1"];
+				carddatabase[16] = ["17-01", "17-01.JPG", "RUNNING BULLDOG", "FOLLOWUP", "GRAPPLE", "", "SELF TURN 1"];
+				carddatabase[17] = ["18-01", "18-01.JPG", "CRAVATE", "FOLLOWUP", "SUBMISSION", "", "SELF TURN 1"];
+				carddatabase[18] = ["19-01", "19-01.JPG", "ELBOW STRIKES", "FOLLOWUP", "STRIKE", "STOP ANY GRAPPLE HAVEONESTOPONE", ""];
+				carddatabase[19] = ["20-01", "20-01.JPG", "NECKBREAKER", "FOLLOWUP", "GRAPPLE", "STOP ANY SUBMISSION HAVEONESTOPONE", ""];
+
+				carddatabase[20] = ["21-01", "21-01.JPG", "LEG LOCK", "FOLLOWUP", "SUBMISSION", "STOP ANY STRIKE HAVEONESTOPONE", ""];
+				carddatabase[21] = ["22-01", "22-01.JPG", "CLOTHESLINE", "FOLLOWUP", "STRIKE", "", "SELF TAKE 1"];
+				carddatabase[22] = ["23-01", "23-01.JPG", "BACKBREAKER", "FOLLOWUP", "GRAPPLE", "", "SELF TAKE 1"];
+				carddatabase[23] = ["24-01", "24-01.JPG", "STRANGLE HOLD", "FOLLOWUP", "SUBMISSION", "", "SELF TAKE 1"];
+				carddatabase[24] = ["25-01", "25-01.JPG", "DROPKICK", "LEAD", "STRIKE", "STOP ANY GRAPPLE", ""];
+				carddatabase[25] = ["26-01", "26-01.JPG", "FALLAWAY SLAM", "LEAD", "GRAPPLE", "STOP ANY SUBMISSION", ""];
+				carddatabase[26] = ["27-01", "27-01.JPG", "DOUBLE ARMBAR", "LEAD", "SUBMISSION", "STOP ANY STRIKE", ""];
+				carddatabase[27] = ["28-01", "28-01.JPG", "THE DUB STEP", "FINISH", "STRIKE", "", "OPP BURY 1"];
+				carddatabase[28] = ["29-01", "29-01.JPG", "THE BEAT DROP", "FINISH", "GRAPPLE", "", ""];
+				carddatabase[29] = ["30-01", "30-01.JPG", "TEARIN' UP THE 1'S & 2'S", "FINISH", "SUBMISSION", "", "SELF TAKE 1"];
+			}
+
+			function loadinitialdeck() { 									//load the proper cards from the card library into the deck
+				var x;
+				for (x=0; x<30; x++) {
+					myfulldeck[x] = x;
+				}
+			}
+
+			function initializedeck() {
+				loadinitialdeck();
+				my_deck.mainarray = myfulldeck;
+			}
+
+			function shuffledeckonly() {
+				my_deck.shuffle();
+				showall();
+			}
+
+			function showall() {
+				getDOM("thedeck").innerHTML = my_deck.getHTML();
+				getDOM("thehand").innerHTML = my_hand.getHTML();
+				getDOM("theinplay").innerHTML = my_inplay.getHTML();
+				getDOM("thediscard").innerHTML = my_discard.getHTML();
+				getDOM("ostrikesinplay").value = opp_inplay.getNumberInPlay("STRIKE");
+				getDOM("ograpplesinplay").value = opp_inplay.getNumberInPlay("GRAPPLE");
+				getDOM("osubsinplay").value = opp_inplay.getNumberInPlay("SUBMISSION");
+			}
+			
+			function flipbuttonclicked() {
+				the_ai.fliponecard(my_deck, my_discard);
+				showall();
+			}
+
+			function buryfromhandclicked() {
+				the_ai.buryonecard(my_hand, my_deck, false, "LOWTOHIGH");
+				showall();
+			}
+
+			function buryfromhandrandom() {
+				the_ai.buryonecard(my_hand, my_deck, true, "");
+				showall();
+			}
+
+			function buryfromdiscardclicked() {
+				the_ai.buryonecard(my_discard, my_deck, false, "HIGHTOLOW");
+				showall();
+			}
+
+			function takefromdiscardclicked() {
+				the_ai.takeonecardfromdiscard(my_hand, my_discard);
+				showall();
+			}
+
+			function shufflefromdiscardclicked() {
+				the_ai.shuffleonecardfromdiscard(my_deck, my_discard)
+				showall();
+			}
+			
+			function drawbuttonclicked() {
+				the_ai.drawcard(my_hand, my_deck, my_discard);
+				showall();
+			}	
+
+			function checkfordiscard() {
+				the_ai.checkfordiscard(my_hand, my_discard);
+			}
+			
+			function startgame() {
+				loadcarddatabase();
+				initializedeck();
+				my_deck.shuffle();
+				my_hand.clearall();
+				my_inplay.clearall();
+				my_discard.clearall();
+				opp_inplay.clearall();
+				drawbuttonclicked();
+				drawbuttonclicked();
+				drawbuttonclicked();
+				showall();
+				startgameenablebuttons();
+			}
+		</script>
+			
+		<script language = "javascript">							//code directly for AI starts here		
+			function playcardbuttonclicked() {
+				var myqueue = [];
+				var x;
+				var currentvalue = 0;
+				var thiscard = [];
+				var ruleattributes = [];
+				var topcardvalue;
+				var topcardposition;
+
+				for (x=0; x<my_hand.getLength(); x++) {
+					currentvalue = 1.0;
+					thiscard = carddatabase[my_hand.getSpecificCard(x)];
+
+					if (thiscard[5].substr(0,4) == "STOP") {					//Is card a stop?
+						if (thiscard[5].substr(0, 8) == "STOP ANY") {
+							currentvalue *= 0.5;
+						} else {
+							currentvalue *= 0.75;
+						}
+					}
+
+					if (thiscard[3] == "FINISH") {								//Is card a finish?
+						if (the_ai.ihaveafollowupinplay(my_inplay)) {
+							currentvalue *= 2;
+						} else {
+							currentvalue *= 0;
+						}
+					}
+
+					if (thiscard[3] == "FOLLOWUP") {							//Is card a followup?
+						if (the_ai.ihavealeadinplay(my_inplay)) {
+							currentvalue *= 1.5;
+						} else {
+							currentvalue *= 0;
+						}
+					}
+
+					ruleattributes = thiscard[6].split(" ");
+
+					if (ruleattributes.length > 1) {
+						switch(ruleattributes[0]) {
+							case "SELF":
+								switch(ruleattributes[1]) {
+									case "DRAW":
+										currentvalue *= 1.3;										//self draw
+										break;
+									case "TAKE":
+										currentvalue *= 1.2;										//self take
+										break;
+									case "BURY":
+										currentvalue *= 1.03;										//self bury
+										break;
+									default:
+										break;
+								} 
+								break;
+							case "OPP":
+								switch(ruleattributes[1]) {
+									case "DISCARD":
+										currentvalue *= 1.1;										//opponent discard
+										break;
+									case "BURY":
+										currentvalue *= 1.05;										//opponent bury
+										break;
+									default:
+										break;
+								}
+								break;
+							default:
+								break;
+						}
+					}
+					myqueue[x] = currentvalue;
+				}
+
+				topcardposition = -999;
+				topcardvalue = -999;
+
+				for (x=0; x<myqueue.length; x++) {									//find position of best card to play
+					if (myqueue[x] > topcardvalue) {								//as aistrength gets lower, there is less chance that 
+						if (getRndInteger(1, 100) < the_ai.AIstrength) {					//		it will detect that a given card is the "best" card to play
+							topcardposition = x;
+							topcardvalue = myqueue[x];	
+						}
+					}
+				}
+
+				if (topcardvalue > 0) {
+					my_inplay.addcard(my_hand.getSpecificCard(topcardposition));							//play the card found
+					my_hand.rebuildwithout(topcardposition);
+					showall();																				//refresh the display
+					setopponentplayedcardbuttons(false);													//enable the buttons to indicate what the opponent stopped your card with
+				} else {
+					getDOM("dialog-confirm").innerHTML = "No legal card to play.";
+					var returnvalue = $( function() {
+						$( "#dialog-confirm" ).dialog({
+						  position: { my: "left center", at: "right center", of: getDOM("controltable") },
+						  resizable: false,
+						  height: "auto",
+						  width: 400,
+						  modal: true,
+						  buttons: {
+							"OK": function() {
+							  $( this ).dialog( "close" );           //close dialog
+							}
+						  }
+						});
+					} );		
+					buryfromdiscardclicked();
+				}
+				showall();											//refresh the display
+			}
+
+			function clearinplaybuttonclicked() {
+				var x;
+				var z = my_inplay.getLength();
+				for (x=0; x<z; x++) {
+					if (my_inplay.getSpecificCard(x) == 29) {
+						my_hand.addnewcard(my_inplay.getSpecificCard(x));
+						checkfordiscard();
+					} else {
+						my_discard.addcard(my_inplay.getSpecificCard(x));
+					}
+				}
+				my_inplay.clearall();
+				opp_inplay.clearall();
+				showall();
+			}
+			
+			function oppplayed(cardsequence, cardtype) {
+				var usethiscard = -999;
+				
+				if (the_ai.whoseturn == "OPPONENT") {
+					the_ai.trytoplaystop(my_hand, my_inplay, opp_inplay, cardsequence, cardtype)
+				}
+				if (the_ai.whoseturn == "MINE") {
+					for (x=0; x<30; x++) {
+						if ((carddatabase[x][3] == cardsequence) && (carddatabase[x][4] == cardtype)) {
+							usethiscard = x;
+						}
+					}
+					opp_inplay.addcard(usethiscard);
+					my_discard.addcard(my_inplay.getSpecificCard(0));		//put card on top of discard pile
+					my_inplay.popTopCard();			 						//remove card from in play list
+					showall(); 
+				}
+				setopponentplayedcardbuttons(true);
+			}																//code directly for AI ends here (~350 to ~765 so about 415 lines of code)
+		</script>															
+		
+		<script language = "javascript">  										
+			function addtodebug(thetext) {
+				getDOM("debugoutput").innerHTML += thetext + "<br>";
+			}
+
+			function cleardebug() {
+				getDOM("debugoutput").innerHTML = "";
+			}
+
+			function startgameenablebuttons() {
+				getDOM("buton98").disabled = false;
+				getDOM("buton99").disabled = false;
+
+				getDOM("buton2").disabled = true;
+				getDOM("buton4").disabled = true;
+				getDOM("buton7").disabled = true;
+				getDOM("buton8").disabled = true;
+				getDOM("buton9").disabled = true;
+				getDOM("buton91").disabled = true;
+				getDOM("buton10").disabled = true;
+				getDOM("buton11").disabled = true;
+				getDOM("buton12").disabled = true;
+				getDOM("buton97").disabled = true;
+				
+				setopponentplayedcardbuttons(true);
+			}
+
+			function myturnclicked() {
+				the_ai.whoseturn = "MINE";
+				
+				getDOM("buton98").disabled = true;
+				getDOM("buton99").disabled = true;
+
+				getDOM("buton2").disabled = false;
+				getDOM("buton4").disabled = false;
+				getDOM("buton7").disabled = false;
+				getDOM("buton8").disabled = false;
+				getDOM("buton9").disabled = false;
+				getDOM("buton91").disabled = false;
+				getDOM("buton10").disabled = false;
+				getDOM("buton11").disabled = false;
+				getDOM("buton12").disabled = false;
+				getDOM("buton97").disabled = false;
+				
+				setopponentplayedcardbuttons(true);
+
+				drawbuttonclicked();
+				
+				getDOM("whathappened").innerHTML = "Opponent stopped with:";
+			}
+
+			function opponentsturnclicked() {
+				the_ai.whoseturn = "OPPONENT";
+				
+				getDOM("buton98").disabled = true;
+				getDOM("buton99").disabled = true;	
+
+				getDOM("buton2").disabled = true;
+				getDOM("buton4").disabled = true;
+				getDOM("buton7").disabled = true;
+				getDOM("buton8").disabled = true;
+				getDOM("buton9").disabled = true;
+				getDOM("buton91").disabled = true;
+				getDOM("buton10").disabled = true;
+				getDOM("buton11").disabled = true;
+				getDOM("buton12").disabled = true;
+				getDOM("buton97").disabled = false;
+				
+				setopponentplayedcardbuttons(false);
+				
+				getDOM("whathappened").innerHTML = "Opponent played:";
+			}
+
+			function endturn() {
+				getDOM("whathappened").innerHTML = "&nbsp;";
+				the_ai.whoseturn = "";
+				startgameenablebuttons();
+			}
+			
+			function setopponentplayedcardbuttons(trueorfalse) {
+				getDOM("button911").disabled = trueorfalse;
+				getDOM("button912").disabled = trueorfalse;
+				getDOM("button913").disabled = trueorfalse;
+				getDOM("button921").disabled = trueorfalse;
+				getDOM("button922").disabled = trueorfalse;
+				getDOM("button923").disabled = trueorfalse;
+				getDOM("button931").disabled = trueorfalse;
+				getDOM("button932").disabled = trueorfalse;
+				getDOM("button933").disabled = trueorfalse;
+			}
+			
+			function setmyactionbuttons(trueorfalse) {
+				getDOM("buton2").disabled = trueorfalse;
+				getDOM("buton4").disabled = trueorfalse;
+				getDOM("buton7").disabled = trueorfalse;
+				getDOM("buton8").disabled = trueorfalse;
+				getDOM("buton9").disabled = trueorfalse;
+				getDOM("buton91").disabled = trueorfalse;
+				getDOM("buton10").disabled = trueorfalse;
+				getDOM("buton11").disabled = trueorfalse;
+				getDOM("buton12").disabled = trueorfalse;
+			}
+		</script>
+	</head>
+
+	<body>
+		<form method = 'GET' action = ''>
+			<table border = 1 cellspacing = 0 cellpadding = 5 id = "controltable">
+				<tr>
+					<td colspan = 4 align = 'center'>
+						<input type = 'button' name='button1' id='buton1' value = 'START GAME' onClick = 'javascript:startgame();'>
+						<input type = 'button' name='button5' id='buton5' value = 'CLEAR INPLAY' onClick = 'javascript:clearinplaybuttonclicked();'>
+						<input type = 'button' name='button13' id='buton13' value = 'CLEAR DEBUG OUTPUT' onClick = 'javascript:cleardebug();'>
+					</td>
+				</tr>
+				<tr>
+					<td colspan = 4 align = 'center'>
+						<input type = 'button' name = 'button98' id='buton98' value = 'MY TURN' onClick = 'javascript:myturnclicked();' disabled>
+						<input type = 'button' name = 'button99' id='buton99' value = 'OPPONENTS TURN' onClick = 'javascript:opponentsturnclicked();' disabled>
+					</td>
+				</tr>
+				<tr>
+					<td valign = 'top' bgcolor = '#cccccc'>
+
+						<input type = 'button' name='button2' id='buton2' value = 'DRAW CARD' onClick = 'javascript:drawbuttonclicked();' disabled><br>
+						<input type = 'button' name='button4' id='buton4' value = 'PLAY CARD' onClick = 'javascript:playcardbuttonclicked();' disabled><br>
+						<input type = 'button' name='button7' id='buton7' value = 'FLIP 1 CARD' onClick = 'javascript:flipbuttonclicked();' disabled><br>
+						<input type = 'button' name='button8' id='buton8' value = 'BURY 1 FROM HAND' onClick = 'javascript:buryfromhandclicked();' disabled><br>
+						<input type = 'button' name='button9' id='buton9' value = 'BURY 1 FROM HAND RANDOM' onClick = 'javascript:buryfromhandrandom();' disabled><br>
+						<input type = 'button' name='button91' id='buton91' value = 'BURY 1 FROM DISCARD' onClick = 'javascript:buryfromdiscardclicked();' disabled><br>
+						<input type = 'button' name='button10' id='buton10' value = 'TAKE 1 FROM DISCARD' onClick = 'javascript:takefromdiscardclicked();' disabled><br>
+						<input type = 'button' name='button11' id='buton11' value = 'SHUFFLE 1 FROM DISCARD' onClick = 'javascript:shufflefromdiscardclicked();' disabled><br>
+						<input type = 'button' name='button12' id='buton12' value = 'SHUFFLE DECK' onClick = 'javascript:shuffledeckonly();' disabled><br>&nbsp;<br>
+					</td>
+
+					<td valign = 'top' bgcolor = '#cccccc'>
+						<table border = 0 cellpadding = 0 cellspacing = 0>
+							<tr>
+								<td colspan = 3 id = 'whathappened'>&nbsp;</td>
+							</tr>
+							<tr>
+								<td><input type='button' id='button911' value='LEAD STRIKE' onClick='javascript:oppplayed("LEAD","STRIKE");' disabled></td>
+								<td><input type='button' id='button912' value='LEAD GRAPPLE' onClick='javascript:oppplayed("LEAD","GRAPPLE");' disabled></td>
+								<td><input type='button' id='button913' value='LEAD SUBMISSION' onClick='javascript:oppplayed("LEAD","SUBMISSION");' disabled></td>
+							</tr>
+							<tr>
+								<td><input type='button' id='button921' value='FOLLOWUP STRIKE' onClick='javascript:oppplayed("FOLLOWUP","STRIKE");' disabled></td>
+								<td><input type='button' id='button922' value='FOLLOWUP GRAPPLE' onClick='javascript:oppplayed("FOLLOWUP","GRAPPLE");' disabled></td>
+								<td><input type='button' id='button923' value='FOLLOWUP SUBMISSION' onClick='javascript:oppplayed("FOLLOWUP","SUBMISSION");' disabled></td>
+							</tr>
+							<tr>
+								<td><input type='button' id='button931' value='FINISH STRIKE' onClick='javascript:oppplayed("FINISH","STRIKE");' disabled></td>
+								<td><input type='button' id='button932' value='FINISH GRAPPLE' onClick='javascript:oppplayed("FINISH","GRAPPLE");' disabled></td>
+								<td><input type='button' id='button933' value='FINISH SUBMISSION' onClick='javascript:oppplayed("FINISH","SUBMISSION");' disabled></td>
+							</tr>
+						</table>						
+					</td>
+					<td valign = 'top'>
+						<img src = '00-01.jpg' width = 400>
+					</td>
+					<td bgcolor = '#cccccc' valign = 'top'>					
+						<table border = 0 cellpadding = 0 cellspacing = 0>
+							<tr>
+								<td>
+									Opponent has in play: <br>
+									<input type = 'text' id = 'ostrikesinplay' size = 3 value = 0> Strikes<br>
+									<input type = 'text' id = 'ograpplesinplay' size = 3 value = 0> Grapples<br>
+									<input type = 'text' id = 'osubsinplay' size = 3 value = 0> Submissions
+								</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td colspan = 4 align = 'center'>
+						<input type = 'button' name='button97' id='buton97' value = 'END TURN' onClick = 'javascript:endturn();' disabled>
+					</td>
+				</tr>
+			</table>
+			
+			<br clear = 'all'>
+
+			<table border = 1 cellpadding = 5 cellspacing = 0>
+				<tr>
+					<td width = "20%" valign = "top">
+						DECK
+						<HR>
+						<div id = 'thedeck'></div>
+					</td>
+					<td width = "20%" valign = "top">
+						HAND
+						<HR>
+						<div id = 'thehand'></div>
+					</td>
+					<td width = "20%" valign = "top">
+						IN PLAY
+						<HR>
+						<div id = 'theinplay'></div>
+					</td>
+					<td width = "20%" valign = "top">
+						DISCARD
+						<HR>
+						<div id = 'thediscard'></div>
+					</td>
+					<td width = "20%" valign = "top">
+						DEBUG
+						<HR>
+						<div id = 'debugoutput'></div>
+					</td>
+				</tr>
+			</table>
+		</form>
+
+		<div id="dialog-confirm" title=""></div>
+
+	</body>
+</html>
